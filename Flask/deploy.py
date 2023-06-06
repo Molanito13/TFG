@@ -10,7 +10,7 @@ from flask_socketio import SocketIO, emit
 letras = np.array(["A","B","C","D","E","F","G","H","I","J","K","L","M","N","Nothing","O","P","Q","R","S","Space","T","U","V","W","X","Y","Z"])
 modelo = tf.keras.models.load_model('../Modelos/ModeloTrain.keras')
 
-app = Flask(__name__, static_folder="./Templates/Static")
+app = Flask(__name__, static_folder="./Templates/Static", template_folder='./Templates')
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app)
 
@@ -53,15 +53,6 @@ def receive_image(image):
 
     frame_resized = cv2.resize(image, 70, 70)
 
-    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
-
-    result, frame_encoded = cv2.imencode(".jpg", frame_resized, encode_param)
-
-    processed_img_data = base64.b64encode(frame_encoded).decode()
-
-    b64_src = "data:image/jpg;base64,"
-    processed_img_data = b64_src + processed_img_data
-
     p = modelo.predict(np.array([frame_resized]))
     
     print(f"La clase predicha es {letras[np.argmax(p)]} con una probabilidad de {np.max(p)*100}%")
@@ -72,6 +63,17 @@ def receive_image(image):
     previousTime = currentTime
     cv2.putText(image, f"FPS: {letras[np.argmax(p)]}", (10, 70), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0), 3)
     # Display the image
+
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+
+    result, frame_encoded = cv2.imencode(".jpg", frame_resized, encode_param)
+
+    processed_img_data = base64.b64encode(frame_encoded).decode()
+
+    b64_src = "data:image/jpg;base64,"
+    processed_img_data = b64_src + processed_img_data
+
+    
 
     emit("processed_image", processed_img_data)
 
