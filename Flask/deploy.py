@@ -15,16 +15,17 @@ app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app)
 
 
-@app.route("/favicon.ico")
+'''@app.route("/favicon.ico")
 def favicon():
     return send_from_directory(
         os.path.join(app.root_path, "static"),
         "favicon.ico",
         mimetype="image/vnd.microsoft.icon",
-    )
+    )'''
 
 
 def base64_to_image(base64_string):
+
     # Extract the base64 encoded binary data from the input string
     base64_data = base64_string.split(",")[1]
     # Decode the base64 data to bytes
@@ -45,10 +46,7 @@ def test_connect():
 @socketio.on("image")
 def receive_image(image):
 
-    currentTime = 0
-    previousTime = 0
-
-    # Decode the base64-encoded image data
+    '''# Decode the base64-encoded image data
     image = base64_to_image(image)
 
     frame_resized = cv2.resize(image, 70, 70)
@@ -73,8 +71,24 @@ def receive_image(image):
     b64_src = "data:image/jpg;base64,"
     processed_img_data = b64_src + processed_img_data
 
-    
+    emit("processed_image", image)'''
+    # Decode the base64-encoded image data
+    image = base64_to_image(image)
 
+    # Perform image processing using OpenCV
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    frame_resized = cv2.resize(gray, (640, 360))
+
+    # Encode the processed image as a JPEG-encoded base64 string
+    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+    result, frame_encoded = cv2.imencode(".jpg", frame_resized, encode_param)
+    processed_img_data = base64.b64encode(frame_encoded).decode()
+
+    # Prepend the base64-encoded string with the data URL prefix
+    b64_src = "data:image/jpg;base64,"
+    processed_img_data = b64_src + processed_img_data
+
+    # Send the processed image back to the client
     emit("processed_image", processed_img_data)
 
 
