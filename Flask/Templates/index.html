@@ -12,6 +12,24 @@
             -moz-transform: rotateY(180deg); /* Firefox */
 
         }
+
+        body{
+            background-color: #111111;
+        }
+
+        div{
+            position: relative;
+            float: left;
+            left: 18.5%;
+            margin-top: 15%;
+        }
+
+        h1{
+            width: 400px;
+            text-align: center;
+            color: #F8F5F2;
+        }
+
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
@@ -20,11 +38,13 @@
 <body>
 
     <div id="container">
+        <h1>Imagen sin procesar</h1>
         <video autoplay playsinline id="videoElement"></video>
         <canvas id="canvas" width="400" height="300"></canvas>
     </div>
 
     <div class='video'>
+        <h1>Imagen procesada</h1>
         <img id="photo" width="400" height="300">
     </div>
     <script src="{{ url_for('static',filename='script.js') }}"></script>
