@@ -24,12 +24,14 @@ if (navigator.mediaDevices.getUserMedia) {
 }
 
 const FPS = 10;
+
 setInterval(() => {
     width = video.width;
     height = video.height;
     context.drawImage(video, 0, 0, width, height);
     var data = canvas.toDataURL('image/jpeg', 0.5);
     context.clearRect(0, 0, width, height);
+    console.log('llego');
     socket.emit('image', data);
 }, 1000 / FPS);
 
