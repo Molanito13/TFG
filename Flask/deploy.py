@@ -1,10 +1,8 @@
 import base64
-import os
 import tensorflow as tf
 import cv2
-import time
 import numpy as np
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
 
 letras = np.array(["A","B","C","D","E","F","G","H","I","J","K","L","M","N","Nothing","O","P","Q","R","S","Space","T","U","V","W","X","Y","Z"])
@@ -13,19 +11,10 @@ modelo = tf.keras.models.load_model('../Modelos/ModeloTrain.keras')
 app = Flask(__name__, static_folder="./Templates/Static", template_folder='./Templates')
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app)
-
-
-'''@app.route("/favicon.ico")
-def favicon():
-    return send_from_directory(
-        os.path.join(app.root_path, "static"),
-        "favicon.ico",
-        mimetype="image/vnd.microsoft.icon",
-    )'''
-
+socketio.init_app(app, cors_allowed_origins='*')
 
 def base64_to_image(base64_string):
-
+    
     # Extract the base64 encoded binary data from the input string
     base64_data = base64_string.split(",")[1]
     # Decode the base64 data to bytes
@@ -46,49 +35,27 @@ def test_connect():
 @socketio.on("image")
 def receive_image(image):
 
-    '''# Decode the base64-encoded image data
+    # Decode the base64-encoded image data
     image = base64_to_image(image)
 
-    frame_resized = cv2.resize(image, 70, 70)
+    frame_resized = cv2.resize(image, (70, 70))
 
     p = modelo.predict(np.array([frame_resized]))
     
     print(f"La clase predicha es {letras[np.argmax(p)]} con una probabilidad de {np.max(p)*100}%")
 
-    # Calculate FPS and display it
-    currentTime = time.time()
-    fps = 1 / (currentTime - previousTime)
-    previousTime = currentTime
     cv2.putText(image, f"FPS: {letras[np.argmax(p)]}", (10, 70), cv2.FONT_HERSHEY_PLAIN, 1, (255, 0, 0), 3)
     # Display the image
 
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
 
-    result, frame_encoded = cv2.imencode(".jpg", frame_resized, encode_param)
+    frame_encoded = cv2.imencode(".jpg", image, encode_param)
 
     processed_img_data = base64.b64encode(frame_encoded).decode()
 
     b64_src = "data:image/jpg;base64,"
     processed_img_data = b64_src + processed_img_data
 
-    emit("processed_image", image)'''
-    # Decode the base64-encoded image data
-    image = base64_to_image(image)
-
-    # Perform image processing using OpenCV
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    frame_resized = cv2.resize(gray, (640, 360))
-
-    # Encode the processed image as a JPEG-encoded base64 string
-    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
-    result, frame_encoded = cv2.imencode(".jpg", frame_resized, encode_param)
-    processed_img_data = base64.b64encode(frame_encoded).decode()
-
-    # Prepend the base64-encoded string with the data URL prefix
-    b64_src = "data:image/jpg;base64,"
-    processed_img_data = b64_src + processed_img_data
-
-    # Send the processed image back to the client
     emit("processed_image", processed_img_data)
 
 
